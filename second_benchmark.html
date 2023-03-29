@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/full/pyodide.js"></script>
+<script src="math.js"></script>
+</head>
+<body>
+
+    <script>
+        (async () => { // create anonymous async function to enable await
+        const pyodide = await loadPyodide();
+    
+        await pyodide.loadPackage(['numpy', 'scikit-learn']).then(() => {
+            console.log('Packages loaded!');
+            // Aquí puede comenzar a utilizar NumPy y scikit-learn
+        });
+    
+        const jsMultiplyMatrices = () => {
+            const a = math.random([300, 300]);
+            const b = math.random([300, 300]);
+            return math.multiply(a, b);
+        };
+        
+        const py_multiply_matrices = (pyodide) => {
+            return pyodide.runPython(`
+            import numpy as np
+            def multiply_matrices():
+                a = np.random.rand(300, 300)
+                b = np.random.rand(300, 300)
+                return np.dot(a, b)
+            `);
+        };
+    
+        const startTimePython = performance.now();
+        const primes = await py_multiply_matrices(pyodide);
+        const endTimePython = performance.now();
+        const pythonTime = endTimePython - startTimePython;
+        console.log(`Tiempo de ejecución en Python: ${pythonTime} ms`);
+    
+        const startTimeJS = performance.now();
+        const jsResult = jsMultiplyMatrices();
+        const endTimeJS = performance.now();
+        const jsTime = endTimeJS - startTimeJS;
+    
+        console.log(`Tiempo de ejecución en JavaScript: ${jsTime} ms`);
+    
+        })(); // call the async function immediately
+    </script>
+</body>
+</html>

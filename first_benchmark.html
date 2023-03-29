@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/full/pyodide.js"></script>
+<script>
+  (async () => { // create anonymous async function to enable await
+    const pyodide = await loadPyodide();
+
+    const javascriptFunction = (n) => {
+        const primes = new Array(n + 1).fill(true);
+        let p = 2;
+        while (p * p <= n) {
+            if (primes[p]) {
+            for (let i = p * 2; i <= n; i += p) {
+                primes[i] = false;
+            }
+            }
+            p++;
+        }
+        return primes.reduce((acc, isPrime, i) => {
+            if (isPrime && i > 1) {
+            acc.push(i);
+            }
+            return acc;
+        }, []);
+    };
+    
+    const generatePrimes = (pyodide, n) => {
+        return pyodide.runPython(`
+          def sieve_of_eratosthenes(n):
+              primes = [True] * (n + 1)
+              p = 2
+              while (p * p <= n):
+                  if primes[p]:
+                      for i in range(p * 2, n + 1, p):
+                          primes[i] = False
+                  p += 1
+              return [i for i in range(2, n + 1) if primes[i]]
+
+          sieve_of_eratosthenes(${n})
+        `);
+    };
+
+    const n = 10000;
+
+    const startTimePython = performance.now();
+    const primes = await generatePrimes(pyodide, n);
+    const endTimePython = performance.now();
+    const pythonTime = endTimePython - startTimePython;
+    console.log(`Python: 10000 números primos generados en ${pythonTime} ms`);
+
+    const startTimeJS = performance.now();
+    const jsResult = javascriptFunction(n);
+    const endTimeJS = performance.now();
+    const jsTime = endTimeJS - startTimeJS;
+
+    console.log(`JS: 10000 números primos generados en ${jsTime} ms`);
+
+  })(); // call the async function immediately
+</script>
+</head>
+<body>
+</body>
+</html>
